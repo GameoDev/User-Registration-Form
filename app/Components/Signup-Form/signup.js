@@ -8,7 +8,7 @@ export default function Signup(props) {
           class="mx-auto h-[100px] w-auto py-[8px] my-9"
         />
         <h1 class="text-black self-center font-semibold text-4xl font-sans">
-          Create Your Account
+          {props?.user}, Create Your Account
         </h1>
         <div class="py-6 mt-8 sm:mx-auto sm:w-full sm:max-w-md sm:px-8 rounded-lg self-center min-w-1 bg-white">
           <form>
