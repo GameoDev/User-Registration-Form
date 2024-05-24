@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
 import { NextResponse } from "next/server";
-import formidable from "formidable";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
