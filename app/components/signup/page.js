@@ -1,10 +1,11 @@
 "use client";
 
-import POST from "@/pages/api/login";
-export default function Login() {
+import axios from "axios";
+
+export default function Signup(props) {
   const OnHandleSubmit = (e) => {
-    event.preventDefault(); // Prevent the default form submission behavior
-    const formData = {}; // Initialize an empty object to store form data
+    e.preventDefault();
+    const formData = {};
 
     // Iterate over form elements and update formData with their values
     for (const element of e.target.elements) {
@@ -17,7 +18,7 @@ export default function Login() {
   };
 
   const SubmitData = async (_data) => {
-    const response = await fetch("/api/login", {
+    const response = await fetch("http://localhost:3000/api/signup", {
       method: "POST",
       body: JSON.stringify(_data),
       headers: {
@@ -25,11 +26,9 @@ export default function Login() {
       },
     });
 
-    console.log(response, " Api reponse");
+    console.log(response, "Api reponse");
     const data = await response.json();
-    if (response.ok) {
-      document.querySelector("info").innerHTML = "Logged In";
-    }
+    console.log(data);
   };
 
   return (
@@ -40,14 +39,22 @@ export default function Login() {
           alt="Italian Trulli"
           className="mx-auto h-[100px] w-auto py-[8px] my-9"
         />
-        <h1
-          id="info"
-          className="text-black self-center font-semibold text-4xl font-sans"
-        >
-          {/* {props?.user}, Create Your Account */}Please Login
+        <h1 className="text-black self-center font-semibold text-4xl font-sans">
+          {/* {props?.user}, Create Your Account */}Create Your Account
         </h1>
         <div className="py-6 mt-8 sm:mx-auto sm:w-full sm:max-w-md sm:px-8 rounded-lg self-center min-w-1 bg-white">
           <form onSubmit={OnHandleSubmit} method="POST">
+            <label htmlFor="full_name">
+              <b className="text-black font-semibold text-sm">Full Name</b>
+            </label>
+            <br />
+            <input
+              type="text"
+              placeholder="Enter Full Name"
+              name="Name"
+              required
+              className="my-2 px-2 w-96 h-12 border-solid border-[0.15px] border-black text-black"
+            />
             <label htmlFor="email">
               <b className="text-black font-semibold text-sm">Email Address</b>
             </label>
@@ -72,12 +79,49 @@ export default function Login() {
               className="my-2 px-2 content-center w-96 h-12 border-solid border-[0.15px] border-black text-black"
             />
             <br />
+            <label htmlFor="psw-repeat">
+              <b className="text-black font-semibold text-sm">
+                Repeat Password
+              </b>
+            </label>
+            <br />
+            <input
+              type="password"
+              placeholder="Repeat Password"
+              name="psw-repeat"
+              required
+              className="my-2 px-2 content-center w-96 h-12 border-solid border-[0.15px] border-black text-black"
+            />
+            <br />
+            <label className="py-6 mt-8">
+              <input
+                type="checkbox"
+                name="remember"
+                className="rounded-md h-4 px-3"
+              />
+              <div className="inline mx-2">
+                <p className="text-black inline">
+                  I agree to the
+                  <a href="#" className="text-blue-700">
+                    {" "}
+                    Terms{" "}
+                  </a>
+                  and
+                  <a href="#" className="text-blue-700">
+                    {" "}
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              </div>
+            </label>
+            <br />
             <div className="clearfix">
               <button
                 type="submit"
                 className="mt-4 rounded-md my-2 px-2 w-96 h-12 text-white font-semibold bg-blue-700"
               >
-                Log In
+                Sign Up
               </button>
               {/* <button
                 type="button"

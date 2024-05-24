@@ -21,7 +21,9 @@ model User {
 }
 
 model posts {
-  id          Int    @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
   description String
+  avatar      String
+  published   Boolean @default(false)
 }

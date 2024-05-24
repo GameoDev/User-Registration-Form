@@ -1,11 +1,15 @@
-import Dashboard from "./dashboard/page";
-import Login from "./login-form/page";
-import Signup from "./signup/page";
+import Dashboard from "./components/dashboard/page";
+import Login from "./components/login-form/page";
+import UploadMulitple from "./components/multiple-files/page";
+import Signup from "./components/signup/page";
 
 export default function Home() {
   return (
     <>
+      <Signup />
+      <Login />
       <Dashboard />
+      <UploadMulitple />
     </>
   );
 }
