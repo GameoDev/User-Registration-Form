@@ -25,5 +25,6 @@ model posts {
   title       String
   description String
   avatar      String
+  price       Int
   published   Boolean @default(false)
 }

@@ -12,7 +12,9 @@ export default function UploadMulitple() {
     try {
       for (const element of e.target.elements) {
         if (element.name != "image") {
-          formData[element.name] = element.value;
+          if (element.name == "price") {
+            formData[element.name] = Number(element.value);
+          } else formData[element.name] = element.value;
         }
       }
 
@@ -102,6 +104,17 @@ export default function UploadMulitple() {
                 type="text"
                 placeholder="Product Title"
                 name="title"
+                required
+                className="my-2 px-2 w-96 h-12 border-solid border-[0.15px] border-black text-black"
+              />
+              <label htmlFor="price">
+                <b className="text-black font-semibold text-sm">Price</b>
+              </label>
+              <br />
+              <input
+                type="text"
+                placeholder="Price"
+                name="price"
                 required
                 className="my-2 px-2 w-96 h-12 border-solid border-[0.15px] border-black text-black"
               />
