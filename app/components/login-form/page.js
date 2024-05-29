@@ -1,7 +1,14 @@
 "use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 export default function Login() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+
   const OnHandleSubmit = (e) => {
-    event.preventDefault(); // Prevent the default form submission behavior
+    e.preventDefault(); // Prevent the default form submission behavior
     const formData = {}; // Initialize an empty object to store form data
 
     // Iterate over form elements and update formData with their values
@@ -10,7 +17,6 @@ export default function Login() {
         formData[element.name] = element.value;
       }
     }
-    console.log("Form Data:", formData);
     SubmitData(formData);
   };
 
@@ -22,11 +28,12 @@ export default function Login() {
         "content-type": "application/json",
       },
     });
-
-    console.log(response, " Api reponse");
-    const data = await response.json();
     if (response.ok) {
-      document.querySelector("#info").innerHTML = "Logged In";
+      //const data = await response.json(); //await response.json();
+      // await localStorage.setItem("sessionToken", data.token);
+      router.push("/components/load-products");
+    } else {
+      alert("Login failed Try Again");
     }
   };
 

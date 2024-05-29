@@ -1,24 +1,31 @@
 "use client";
+import { useEffect, useState } from "react";
+const CheckOut = () => {
+  const [cart, setCart] = useState([]);
 
-import axios from "axios";
+  useEffect(() => {
+    const storedValue = localStorage.getItem("cart");
+    const parsedValue = storedValue ? JSON.parse(storedValue) : [];
+    // console.log(parsedValue);
+    setCart(parsedValue);
+  }, []);
 
-export default function Signup(props) {
   const OnHandleSubmit = (e) => {
     e.preventDefault();
     const formData = {};
 
-    // Iterate over form elements and update formData with their values
     for (const element of e.target.elements) {
       if (element.name) {
         formData[element.name] = element.value;
       }
     }
-    console.log("Form Data:", formData);
+
+    console.log(formData);
     SubmitData(formData);
   };
 
   const SubmitData = async (_data) => {
-    const response = await fetch("http://localhost:3000/api/signup", {
+    const response = await fetch("http://localhost:3000/api/place-order", {
       method: "POST",
       body: JSON.stringify(_data),
       headers: {
@@ -28,14 +35,39 @@ export default function Signup(props) {
 
     console.log(response, "Api reponse");
     const data = await response.json();
-    if (response.ok) {
-      router.push("/components/load-products");
-    } else {
-      alert("Registration failed Try Again");
-    }
-    console.log(data);
+    PlaceOrder(data.id);
   };
+  const PlaceOrder = async (_id) => {
+    try {
+      for (let i = 0; i < cart.length; i++) {
+        const formData = {};
 
+        let price = cart[i].price;
+        let quantity = cart[i].quantity;
+        let id = cart[i].id;
+
+        formData["orderId"] = _id;
+        formData["prices"] = price;
+        formData["product_ids"] = id;
+        formData["product_quantity"] = quantity;
+        console.log(formData);
+
+        const response = await fetch("http://localhost:3000/api/add-order", {
+          method: "POST",
+          body: JSON.stringify(formData),
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+
+        console.log(response, "Api reponse");
+        const data = await response.json();
+        console.log(data.id);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <>
       <div className="min-h-screen  bg-gray-100 flex flex-col justify-center py-12 content-center px-6 lg:px-8">
@@ -45,7 +77,7 @@ export default function Signup(props) {
           className="mx-auto h-[100px] w-auto py-[8px] my-9"
         />
         <h1 className="text-black self-center font-semibold text-4xl font-sans">
-          {/* {props?.user}, Create Your Account */}Create Your Account
+          {/* {props?.user}, Create Your Account */}Checkout
         </h1>
         <div className="py-6 mt-8 sm:mx-auto sm:w-full sm:max-w-md sm:px-8 rounded-lg self-center min-w-1 bg-white">
           <form onSubmit={OnHandleSubmit} method="POST">
@@ -56,10 +88,20 @@ export default function Signup(props) {
             <input
               type="text"
               placeholder="Enter Full Name"
-              name="Name"
-              required
+              name="customer_name"
               className="my-2 px-2 w-96 h-12 border-solid border-[0.15px] border-black text-black"
             />
+            <label htmlFor="email">
+              <b className="text-black font-semibold text-sm">Contact Number</b>
+            </label>
+            <br />
+            <input
+              type="text"
+              placeholder="Mobile Number"
+              name="customer_mobile"
+              className="my-2 px-2 w-96 h-12 border-solid border-[0.15px] border-black text-black"
+            />
+            <br />
             <label htmlFor="email">
               <b className="text-black font-semibold text-sm">Email Address</b>
             </label>
@@ -67,77 +109,46 @@ export default function Signup(props) {
             <input
               type="text"
               placeholder="Enter Email"
-              name="email"
-              required
+              name="customer_email"
               className="my-2 px-2 w-96 h-12 border-solid border-[0.15px] border-black text-black"
             />
             <br />
             <label htmlFor="psw">
-              <b className="text-black font-semibold text-sm">Password</b>
+              <b className="text-black font-semibold text-sm">Address</b>
             </label>
             <br />
             <input
-              type="password"
-              placeholder="Enter Password"
-              name="Password"
-              required
+              type="text"
+              placeholder="Delivery Address"
+              name="customer_address"
               className="my-2 px-2 content-center w-96 h-12 border-solid border-[0.15px] border-black text-black"
             />
             <br />
             <label htmlFor="psw-repeat">
-              <b className="text-black font-semibold text-sm">
-                Repeat Password
-              </b>
+              <b className="text-black font-semibold text-sm">City</b>
             </label>
             <br />
             <input
-              type="password"
-              placeholder="Repeat Password"
-              name="psw-repeat"
-              required
+              type="text"
+              placeholder="City"
+              name="customer_city"
               className="my-2 px-2 content-center w-96 h-12 border-solid border-[0.15px] border-black text-black"
             />
             <br />
-            <label className="py-6 mt-8">
-              <input
-                type="checkbox"
-                name="remember"
-                className="rounded-md h-4 px-3"
-              />
-              <div className="inline mx-2">
-                <p className="text-black inline">
-                  I agree to the
-                  <a href="#" className="text-blue-700">
-                    {" "}
-                    Terms{" "}
-                  </a>
-                  and
-                  <a href="#" className="text-blue-700">
-                    {" "}
-                    Privacy Policy
-                  </a>
-                  .
-                </p>
-              </div>
-            </label>
-            <br />
+
             <div className="clearfix">
               <button
                 type="submit"
                 className="mt-4 rounded-md my-2 px-2 w-96 h-12 text-white font-semibold bg-blue-700"
               >
-                Sign Up
+                Place Order
               </button>
-              {/* <button
-                type="button"
-                className="mt-4 rounded-md my-2 px-2 w-96 h-12 text-white font-semibold bg-red-500"
-              >
-                Cancel
-              </button> */}
             </div>
           </form>
         </div>
       </div>
     </>
   );
-}
+};
+
+export default CheckOut;

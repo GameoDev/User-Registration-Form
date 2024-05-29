@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-
+import { useRouter } from "next/navigation";
 const Products = () => {
   const [data, setData] = useState([]);
   const [quantities, setQuantities] = useState([]);
   const hasFetchedData = useRef(false);
   const [cart, setCart] = useState([]);
+  const [authenticated, setAuthenticated] = useState(false);
   const [total, setTotal] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -37,6 +40,42 @@ const Products = () => {
     }
   }, []);
 
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     const token = localStorage.getItem("sessionToken");
+  //     if (!token) {
+  //       router.push("/");
+  //       return;
+  //     }
+
+  //     try {
+  //       const response = await fetch("/api/session", {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+
+  //       const data = await response.json();
+  //       console.log(data);
+  //       if (data.authenticated) {
+  //         setAuthenticated(true);
+  //       } else {
+  //         router.push("/");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error during authentication check:", error);
+  //       router.push("/");
+  //     }
+  //   };
+
+  //   checkAuth();
+  // }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("sessionToken");
+    router.push("/");
+  };
+
   const handleIncrement = (index, id) => {
     const newCart = [...cart];
     let found = false;
@@ -60,7 +99,6 @@ const Products = () => {
     }
 
     setCart(newCart);
-    console.log(newCart[0].quantity);
     let _total = 0;
     for (let i = 0; i < newCart.length; i++) {
       _total += Number(newCart[i].quantity) * Number(newCart[i].price);
@@ -73,6 +111,35 @@ const Products = () => {
     });
   };
 
+  const RemoveItem = (index, id) => {
+    // Filter out the item with the specified id
+    const newCart = cart.filter((item) => item.id !== id);
+
+    // Update the cart state
+    setCart(newCart);
+
+    // Calculate the new total
+    let _total = 0;
+    for (let i = 0; i < newCart.length; i++) {
+      _total += Number(newCart[i].quantity) * Number(newCart[i].price);
+    }
+
+    // Update the total state
+    setTotal(_total);
+
+    // Update the quantities state
+    setQuantities((prevQuantities) => {
+      const newQuantities = [...prevQuantities];
+      newQuantities[index] = 0;
+      return newQuantities;
+    });
+
+    // If the cart is empty, trigger the mouse leave handler
+    if (newCart.length === 0) {
+      handleMouseLeave();
+    }
+  };
+
   const handleDecrement = (index, id) => {
     if (quantities[index] > 0) {
       const newCart = [...cart];
@@ -81,23 +148,17 @@ const Products = () => {
         if (item.id === id) {
           item.quantity -= 1;
           if (item.quantity <= 0) {
-            newCart.pop();
-            item.quantity = 0;
+            RemoveItem(index, id);
           }
         }
       });
-      setCart(newCart);
-      let _total = 0;
-      for (let i = 0; i < newCart.length; i++) {
-        _total += Number(newCart[i].quantity) * Number(newCart[i].price);
-      }
-      setTotal(_total);
-      setQuantities((prevQuantities) => {
-        const newQuantities = [...prevQuantities];
-        newQuantities[index] -= 1;
-        return newQuantities;
-      });
     }
+    setQuantities((prevQuantities) => {
+      const newQuantities = [...prevQuantities];
+      newQuantities[index] -= 1;
+      if (newQuantities[index] <= 0) newQuantities[index] = 0;
+      return newQuantities;
+    });
   };
 
   const handleInputChange = (index, value, id) => {
@@ -137,9 +198,31 @@ const Products = () => {
     });
   };
 
+  const handleMouseEnter = () => {
+    if (cart.length >= 1) {
+      document.querySelector("#cartList").className =
+        "w-full rounded-lg bg-zinc-800 text-center block z-10";
+      setIsHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    document.querySelector("#cartList").className =
+      "w-full rounded-lg bg-zinc-800 text-center hidden z-10";
+    setIsHovered(false);
+  };
+
   return (
     <div id="parentNode" className="min-h-screen bg-gray-100 py-12">
-      <div className="w-2/5 rounded-lg bg-slate-500 ml-[250px]">
+      <div>
+        <h1>Dashboard</h1>
+        <button onClick={handleLogout}>Logout</button>
+      </div>
+      <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="w-2/5 rounded-lg bg-slate-500 ml-[250px] z-0 relative"
+      >
         <h1 className="font-semibold text-center text-black block">
           Shopping Cart
         </h1>
@@ -148,14 +231,74 @@ const Products = () => {
             CART IS EMPTY
           </p>
         ) : (
-          <h1 className="font-semibold text-center text-black block">
+          <h1 className="font-semibold text-center text-black hidden">
             Number of items in cart: {cart.length} and Your total is : {total}
           </h1>
         )}
+
+        <div className="rounded-lg bg-zinc-800 text-center flex z-10 ml-[300px] absolute">
+          <div
+            id="cartList"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className="w-full rounded-lg bg-zinc-800 text-center hidden z-10"
+          >
+            {cart.map((d, i) => (
+              <>
+                <div className="rounded-lg h-30 flex">
+                  <img
+                    src={d.avatar.replace(/['"]+/g, "")}
+                    className="ml-[30px] py-[10px] w-30 rounded-lg"
+                  />
+                  <div className="w-[300px] mt-[2px]">
+                    <h4 className="mt-5 font-bold">
+                      {d.quantity} x {d.title}
+                    </h4>
+                    <h5 className="mt-3  font-medium">{d.price}$</h5>
+                    <h5 className="mt-3  font-medium">
+                      Total {d.price * d.quantity}$
+                    </h5>
+                  </div>
+                  <div className="mr-10 ml-[200px] mt-[20px]">
+                    <button
+                      onClick={() => RemoveItem(i, d.id)}
+                      className="w-20 h-20 bg-slate-400 rounded-3xl"
+                    >
+                      X
+                    </button>
+                  </div>
+                </div>
+                <hr className="m-4 rounded-lg bg-slate-500" />
+              </>
+            ))}
+            <div>
+              <h1 className="inline-flex font-bold block mr-[400px]">
+                TOTAL :{" "}
+              </h1>
+              <h1 className="inline-flex font-bold text-center block">
+                {total}
+              </h1>
+              <hr className="m-4 rounded-lg bg-slate-500" />
+            </div>
+            <button
+              onClick={() => router.push("/components/cart-item")}
+              className="w-50 h-30 bg-slate-400 my-6"
+            >
+              View cart
+            </button>
+            <button
+              onClick={() => router.push("/components/check-out")}
+              className="ml-[200px] w-50 h-30 bg-slate-400 my-6"
+            >
+              Checkout
+            </button>
+          </div>
+        </div>
       </div>
+
       <div
         id="btnContainer"
-        className="w-3/5 m-10 rounded-lg bg-slate-500 text-center flex"
+        className="w-3/5 ml-20 mt-[400px] rounded-lg bg-slate-500 text-center flex"
       >
         {data.map((d, i) => (
           <div key={d.id} className="h-/1 w-40 rounded-lg py-8">
@@ -190,7 +333,11 @@ const Products = () => {
                 -
               </button>
               <br />
-              <button value={d.id} className="w-20 bg-slate-400 my-6">
+              <button
+                onClick={() => handleIncrement(i, d.id)}
+                value={d.id}
+                className="w-20 bg-slate-400 my-6"
+              >
                 Add To cart
               </button>
             </div>

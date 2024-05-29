@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+
 const prisma = new PrismaClient();
 
 export async function POST(req, res) {
@@ -13,7 +14,11 @@ export async function POST(req, res) {
     });
 
     if (userExists) {
-      return Response.json("You are logged in Your Account");
+      const token = generateToken({ email });
+      return new Response(
+        JSON.stringify({ success: "Successful", token: token }),
+        { status: 201 }
+      );
     }
   } catch (error) {
     console.error(error);

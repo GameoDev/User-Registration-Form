@@ -28,3 +28,20 @@ model posts {
   price       Int
   published   Boolean @default(false)
 }
+
+model orders {
+  id               Int    @id @default(autoincrement())
+  customer_name    String
+  customer_address String
+  customer_mobile  String
+  customer_city    String
+  customer_email   String
+}
+
+model orderedProdcuts {
+  id               Int @id @default(autoincrement())
+  orderId          Int
+  prices           Int
+  product_ids      Int
+  product_quantity Int
+}
