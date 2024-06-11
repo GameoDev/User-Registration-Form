@@ -1,6 +1,35 @@
+"use client";
 import Link from "next/link";
-
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 const Home = () => {
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("sessionToken");
+
+      try {
+        const response = await fetch("/api/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data.authenticated) {
+          router.push("/components/load-products");
+        }
+      } catch (error) {
+        console.log("Error during authentication check:", error);
+        router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   return (
     <>
       <h1>YOU ARE HERE AS A GUEST</h1>

@@ -1,8 +1,36 @@
 "use client";
 
-import axios from "axios";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Signup(props) {
+  const router = useRouter();
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("sessionToken");
+
+      try {
+        const response = await fetch("/api/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data.authenticated) {
+          router.push("/components/load-products");
+        }
+      } catch (error) {
+        console.log("Error during authentication check:", error);
+        router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   const OnHandleSubmit = (e) => {
     e.preventDefault();
     const formData = {};
@@ -10,6 +38,11 @@ export default function Signup(props) {
     // Iterate over form elements and update formData with their values
     for (const element of e.target.elements) {
       if (element.name) {
+        // if (element.name == "isAdmin") {
+        //   formData[element.name] = element.checked;
+        // } else {
+        //   formData[element.name] = element.value;
+        // }
         formData[element.name] = element.value;
       }
     }
@@ -101,7 +134,7 @@ export default function Signup(props) {
             <label className="py-6 mt-8">
               <input
                 type="checkbox"
-                name="remember"
+                name="privacy"
                 className="rounded-md h-4 px-3"
               />
               <div className="inline mx-2">

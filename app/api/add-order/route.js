@@ -2,14 +2,14 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 export async function POST(req, res) {
   try {
-    const { orderId, prices, product_ids, product_quantity } = await req.json();
+    const { orderId, productId, product_quantity, orderedTime } =
+      await req.json();
 
     let Order = await prisma.orderedProdcuts.create({
       data: {
-        orderId,
-        prices,
-        product_ids,
-        product_quantity,
+        orderId: orderId, // Ensuring ordersId exists in the orders table
+        productId: productId,
+        product_quantity: product_quantity,
       },
     });
 

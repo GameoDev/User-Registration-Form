@@ -14,34 +14,40 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
+  id       Int      @id @default(autoincrement())
   email    String
   Name     String?
   Password String
+  isAdmin  Boolean  @default(false)
+  privacy  Boolean  @default(true)
+  orders   orders[]
 }
 
-model posts {
-  id          Int     @id @default(autoincrement())
-  title       String
-  description String
-  avatar      String
-  price       Int
-  published   Boolean @default(false)
+model products {
+  id              Int               @id @default(autoincrement())
+  title           String
+  description     String
+  avatar          String
+  price           Int
+  published       Boolean           @default(true)
+  orderedProdcuts orderedProdcuts[]
 }
 
 model orders {
-  id               Int    @id @default(autoincrement())
-  customer_name    String
-  customer_address String
-  customer_mobile  String
-  customer_city    String
-  customer_email   String
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  user            User              @relation(fields: [userId], references: [id])
+  orderedProdcuts orderedProdcuts[]
+  status          String            @default("Pending")
+  statusIndex     Int               @default(1)
+  orderedTime     DateTime
 }
 
 model orderedProdcuts {
-  id               Int @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
+  order            orders   @relation(fields: [orderId], references: [id])
   orderId          Int
-  prices           Int
-  product_ids      Int
+  product          products @relation(fields: [productId], references: [id])
+  productId        Int
   product_quantity Int
 }

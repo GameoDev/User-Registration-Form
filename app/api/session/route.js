@@ -1,18 +1,34 @@
 import { verifyToken } from "@/utils/jwt";
 
-export default function handler(req, res) {
-  const authHeader = req.headers.authorization;
+export async function GET(req, res) {
+  const authHeader = req.headers.get("authorization");
+  console.log("Authorization header:", authHeader); // Debugging
 
   if (!authHeader) {
-    return res.status(401).json({ authenticated: false });
+    console.error("Authorization header missing"); // Debugging
+    return new Response(
+      JSON.stringify({
+        authenticated: false,
+        message: "Authorization header missing",
+      }),
+      { status: 401 }
+    );
   }
 
   const token = authHeader.split(" ")[1];
+  console.log("Extracted token:", token); // Debugging
+
   const decoded = verifyToken(token);
+  console.log("Decoded token:", decoded); // Debugging
 
   if (decoded) {
-    res.status(200).json({ authenticated: true });
+    return new Response(JSON.stringify({ authenticated: true }), {
+      status: 200,
+    });
   } else {
-    res.status(401).json({ authenticated: false });
+    return new Response(
+      JSON.stringify({ authenticated: false, message: "Invalid token" }),
+      { status: 401 }
+    );
   }
 }

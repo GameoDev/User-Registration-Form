@@ -3,25 +3,16 @@ const prisma = new PrismaClient();
 
 export async function POST(req, res) {
   try {
-    const {
-      customer_name,
-      customer_address,
-      customer_mobile,
-      customer_city,
-      customer_email,
-    } = await req.json();
+    const { userId } = await req.json();
 
-    let Order = await prisma.orders.create({
+    const newOrder = await prisma.orders.create({
       data: {
-        customer_name,
-        customer_address,
-        customer_mobile,
-        customer_city,
-        customer_email,
+        userId: userId, // Associate the order with the user by userId
+        orderedTime: new Date(),
       },
     });
 
-    return Response.json(Order);
+    return Response.json(newOrder);
   } catch (error) {
     return Response.json(error.message);
   }
@@ -29,14 +20,18 @@ export async function POST(req, res) {
 
 export async function AddOrder(req, res) {
   try {
-    const { orderId, prices, product_ids, product_quantity } = await req.json();
+    const { orderId, productId, product_quantity } = await req.json();
 
     let Order = await prisma.orderedProdcuts.create({
       data: {
-        orderId,
-        prices,
-        product_ids,
-        product_quantity,
+        orderId: orderId, // Ensuring ordersId exists in the orders table
+        productId: productId,
+        product_quantity: product_quantity,
+        order: {
+          connect: {
+            id: orderId,
+          },
+        },
       },
     });
 

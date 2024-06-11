@@ -3,7 +3,8 @@ const prisma = new PrismaClient();
 
 export async function POST(req, res) {
   try {
-    const { email, Password, Name } = await req.json();
+    // const { email, Password, Name, isAdmin } = await req.json();
+    const { email, Password, Name, privacy } = await req.json();
 
     let userExists = await prisma.user.findFirst({
       where: {
@@ -15,11 +16,21 @@ export async function POST(req, res) {
       return Response.json("user already defined");
     }
 
+    // let user = await prisma.user.create({
+    //   data: {
+    //     email,
+    //     Password,
+    //     Name,
+    //     isAdmin,
+    //   },
+    // });
+
     let user = await prisma.user.create({
       data: {
         email,
         Password,
         Name,
+        privacy,
       },
     });
 

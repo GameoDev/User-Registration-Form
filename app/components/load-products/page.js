@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 const Products = () => {
@@ -13,8 +12,26 @@ const Products = () => {
   const router = useRouter();
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+    const initQuantities = () => {
+      const storedValue = localStorage.getItem("cart");
+      const parsedValue = storedValue ? JSON.parse(storedValue) : [];
+      if (parsedValue.length >= 1) {
+        setCart(parsedValue);
+        let _total = 0;
+        let _quantities = [];
+
+        for (let i = 0; i < parsedValue.length; i++) {
+          _total +=
+            Number(parsedValue[i].quantity) * Number(parsedValue[i].price);
+          _quantities[i] = parsedValue[i].quantity;
+        }
+        setQuantities(_quantities); // Fix here
+        setTotal(_total);
+      }
+    };
+
+    initQuantities();
+  }, []); // Empty dependency array ensures this runs once on mount
 
   useEffect(() => {
     if (!hasFetchedData.current) {
@@ -40,44 +57,58 @@ const Products = () => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     const token = localStorage.getItem("sessionToken");
-  //     if (!token) {
-  //       router.push("/");
-  //       return;
-  //     }
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("sessionToken");
+      if (!token) {
+        console.log("no token");
+        router.push("/");
+        return;
+      }
 
-  //     try {
-  //       const response = await fetch("/api/session", {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
+      try {
+        const response = await fetch("/api/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  //       const data = await response.json();
-  //       console.log(data);
-  //       if (data.authenticated) {
-  //         setAuthenticated(true);
-  //       } else {
-  //         router.push("/");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error during authentication check:", error);
-  //       router.push("/");
-  //     }
-  //   };
+        const data = await response.json();
+        console.log(data);
 
-  //   checkAuth();
-  // }, [router]);
+        if (data.authenticated) {
+          setAuthenticated(true);
+        } else {
+          console.log("no authentication");
+          router.push("/");
+        }
+      } catch (error) {
+        console.log("Error during authentication check:", error);
+        router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (cart.length >= 1) {
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
+  }, [cart]);
 
   const handleLogout = () => {
     localStorage.removeItem("sessionToken");
     router.push("/");
   };
 
+  const SeeOrders = () => {
+    router.push("/components/my-orders");
+  };
+
   const handleIncrement = (index, id) => {
     const newCart = [...cart];
+
     let found = false;
 
     newCart.forEach((item) => {
@@ -111,26 +142,29 @@ const Products = () => {
     });
   };
 
-  const RemoveItem = (index, id) => {
-    // Filter out the item with the specified id
-    const newCart = cart.filter((item) => item.id !== id);
+  const RemoveItem = (index, _id) => {
+    let itemIndex = 0;
 
-    // Update the cart state
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].id === _id) {
+        itemIndex = i;
+      }
+    }
+
+    const newCart = cart.filter((item) => item.id !== _id);
+
     setCart(newCart);
 
-    // Calculate the new total
     let _total = 0;
     for (let i = 0; i < newCart.length; i++) {
       _total += Number(newCart[i].quantity) * Number(newCart[i].price);
     }
 
-    // Update the total state
     setTotal(_total);
 
-    // Update the quantities state
     setQuantities((prevQuantities) => {
       const newQuantities = [...prevQuantities];
-      newQuantities[index] = 0;
+      newQuantities[itemIndex] = 0;
       return newQuantities;
     });
 
@@ -216,7 +250,18 @@ const Products = () => {
     <div id="parentNode" className="min-h-screen bg-gray-100 py-12">
       <div>
         <h1>Dashboard</h1>
-        <button onClick={handleLogout}>Logout</button>
+        <button
+          className="ml-[200px] w-50 h-30 bg-slate-400 my-6"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+        <button
+          className="ml-[200px] w-50 h-30 bg-slate-400 my-6"
+          onClick={SeeOrders}
+        >
+          My Orders
+        </button>
       </div>
       <div
         onMouseEnter={handleMouseEnter}
@@ -321,7 +366,7 @@ const Products = () => {
                 type="text"
                 placeholder="Quantity"
                 name="quantity"
-                value={quantities[i]}
+                value={cart.find((item) => item.id === d.id)?.quantity || 0}
                 onChange={(e) => handleInputChange(i, e.target.value, d.id)}
                 className="my-6 mx-[5px] px-2 w-20 h-12 border-solid border-[0.15px] border-black text-black inline"
               />

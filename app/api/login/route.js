@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-
+import { generateToken } from "@/utils/jwt";
 const prisma = new PrismaClient();
 
 export async function POST(req, res) {
@@ -16,7 +16,12 @@ export async function POST(req, res) {
     if (userExists) {
       const token = generateToken({ email });
       return new Response(
-        JSON.stringify({ success: "Successful", token: token }),
+        JSON.stringify({
+          success: "Successful",
+          token: token,
+          userId: userExists.id,
+          isAdmin: userExists.isAdmin,
+        }),
         { status: 201 }
       );
     }

@@ -1,11 +1,36 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 export default function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("sessionToken");
+
+      try {
+        const response = await fetch("/api/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data.authenticated) {
+          router.push("/components/load-products");
+        }
+      } catch (error) {
+        console.log("Error during authentication check:", error);
+        router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const OnHandleSubmit = (e) => {
     e.preventDefault(); // Prevent the default form submission behavior
@@ -28,10 +53,17 @@ export default function Login() {
         "content-type": "application/json",
       },
     });
+    console.log(response);
     if (response.ok) {
-      //const data = await response.json(); //await response.json();
-      // await localStorage.setItem("sessionToken", data.token);
-      router.push("/components/load-products");
+      const data = await response.json();
+      localStorage.setItem("userId", data.userId);
+      if (data.isAdmin) {
+        localStorage.setItem("administratorToken", data.token);
+        router.push("/components/admin-panel");
+      } else {
+        localStorage.setItem("sessionToken", data.token);
+        router.push("/components/load-products");
+      }
     } else {
       alert("Login failed Try Again");
     }
@@ -74,6 +106,7 @@ export default function Login() {
               placeholder="Enter Password"
               name="Password"
               required
+              value="asddsa"
               className="my-2 px-2 content-center w-96 h-12 border-solid border-[0.15px] border-black text-black"
             />
             <br />

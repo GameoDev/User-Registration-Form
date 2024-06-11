@@ -1,7 +1,51 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 const CheckOut = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [cart, setCart] = useState([]);
+  const router = useRouter();
+
+  // useEffect(() => {
+  //   const initQuantities = () => {
+  //     const storedValue = localStorage.getItem("userId");
+  //     userID = Number(storedValue);
+  //     console.log(userID);
+  //   };
+  //   initQuantities();
+  // }, []); // Empty dependency array ensures this runs once on mount
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("sessionToken");
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data.authenticated) {
+          setAuthenticated(true);
+        } else {
+          router.push("/");
+        }
+      } catch (error) {
+        console.log("Error during authentication check:", error);
+        router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     const storedValue = localStorage.getItem("cart");
@@ -12,15 +56,15 @@ const CheckOut = () => {
 
   const OnHandleSubmit = (e) => {
     e.preventDefault();
+
     const formData = {};
 
-    for (const element of e.target.elements) {
-      if (element.name) {
-        formData[element.name] = element.value;
-      }
-    }
+    const storedValue = localStorage.getItem("userId");
 
-    console.log(formData);
+    const userID = Number(storedValue);
+
+    formData["userId"] = userID;
+
     SubmitData(formData);
   };
 
@@ -32,8 +76,6 @@ const CheckOut = () => {
         "content-type": "application/json",
       },
     });
-
-    console.log(response, "Api reponse");
     const data = await response.json();
     PlaceOrder(data.id);
   };
@@ -41,16 +83,13 @@ const CheckOut = () => {
     try {
       for (let i = 0; i < cart.length; i++) {
         const formData = {};
-
-        let price = cart[i].price;
         let quantity = cart[i].quantity;
         let id = cart[i].id;
 
         formData["orderId"] = _id;
-        formData["prices"] = price;
-        formData["product_ids"] = id;
+        formData["productId"] = id;
         formData["product_quantity"] = quantity;
-        console.log(formData);
+        console.log("---------", formData);
 
         const response = await fetch("http://localhost:3000/api/add-order", {
           method: "POST",
@@ -62,7 +101,6 @@ const CheckOut = () => {
 
         console.log(response, "Api reponse");
         const data = await response.json();
-        console.log(data.id);
       }
     } catch (error) {
       console.log(error);

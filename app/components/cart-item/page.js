@@ -4,8 +4,41 @@ import { useRouter } from "next/navigation";
 const Mycart = () => {
   const [total, setTotal] = useState(0);
   const [quantities, setQuantities] = useState([]);
+  const [authenticated, setAuthenticated] = useState(false);
   const [cart, setCart] = useState([]);
   const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("sessionToken");
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (data.authenticated) {
+          setAuthenticated(true);
+        } else {
+          router.push("/");
+        }
+      } catch (error) {
+        console.log("Error during authentication check:", error);
+        router.push("/");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     let _total = 0;
@@ -154,6 +187,11 @@ const Mycart = () => {
     });
   };
 
+  const Continue = () => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    router.push("/components/load-products");
+  };
+
   return (
     <>
       <div id="parentNode" className="min-h-screen bg-gray-100 py-12">
@@ -229,7 +267,7 @@ const Mycart = () => {
               <hr className="m-4 rounded-lg bg-slate-500" />
             </div>
             <button
-              onClick={() => router.push("/components/load-products")}
+              onClick={() => Continue()}
               className="w-50 h-30 bg-slate-400 my-6"
             >
               Continue Shopping
